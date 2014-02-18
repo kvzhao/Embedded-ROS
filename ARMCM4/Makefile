@@ -228,3 +228,7 @@ ifeq ($(USE_FWLIB),yes)
 endif
 
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/rules.mk
+
+## flash
+flash:
+	st-flash write build/ch.bin 0x08000000
