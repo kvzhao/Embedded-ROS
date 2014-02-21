@@ -15,6 +15,7 @@ An embedded ROS based on ChibiOS/RT, adding different features
 
 * Edited by ChibiOS/RT-F429 Sample
 
-## Author
+## Reference
+* Edited from ChibiOS/RT Community Demo Code for STM32F429
 
-kvzhao  
+
