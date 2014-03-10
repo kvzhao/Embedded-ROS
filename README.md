@@ -1,12 +1,12 @@
-# Embedded Robot Operating System
-An embedded ROS based on ChibiOS/RT, adding different features
+# Portable Oscilloscope
+A portable measurement device
 
-## Topics
-* Dexterous Robot Arm
-* Pathfinder for Omin-wheel driving Robot, Delta
+## Features
+Measuring acceleration from analog device
 
 ## Hardware
 * STM32F429-Disco
+
 ### Pin Assignment
 
 * USART - `PA9(TX), PA10(RX)`
