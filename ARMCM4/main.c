@@ -35,6 +35,15 @@
 
 #define IS42S16400J_SIZE             0x400000
 
+// 2 channels are sampled by one single operation
+#define ADC_GRP1_NUM_CHANNELS 2
+// channels are sampled four times each
+#define ADC_GRP1_BUF_DEPTH    4
+/*
+ * ADC Sample Buffer
+ */
+static adcsample_t samples[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
+
 /*
  * Erases the whole SDRAM bank.
  */
@@ -78,6 +87,49 @@ static msg_t Thread2(void *arg) {
     chThdSleepMilliseconds(250);
   }
   return CH_SUCCESS;
+}
+
+/*
+ *ADC Callback
+ */
+static void adccb (ADCDriver* adcp, adcsample_t *buffer, size_t n) {
+    (void)buffer; (void)n;
+    // Only in the ADC is complete
+    if (adcp->state == ADC_COMPLETE) {
+        adcsample_t avg_ch1, avg_ch2;
+        // Calculate the average values from ADC samples
+        avg_ch1 =(samples[0] + samples[2] + samples[4] + samples[6])/4;
+
+        chSysLockFromIsr();
+            // do something i dont know
+        chSysUnlockFromIsr();
+    }
+}
+
+static const ADCConversionGroup adcgrpcfg = {
+    FALSE,
+    ADC_GRP1_NUM_CHANNELS,
+    adccb, // callback?
+    NULL,
+    /* HW Dependent */
+    0,
+    ADC_CR2_SWSTART,
+    ADC_SMPR1_SMP_AN11(ADC_SAMPLE_56) | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_144),
+    0,
+    ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
+    0,
+    ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11) | ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR)
+};
+
+static msg_t ACCMeasure_Thread(void *arg)
+{
+    (void)arg;
+    chRegSetThreadName("AccMeasure");
+    adcStart(, NULL);
+    while (TRUE) {
+
+    }
+    return CH_SUCCESS;
 }
 
 /*===========================================================================*/
@@ -431,6 +483,7 @@ static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[]) {
   TimeMeasurement tm;
 
 
+  accStart();
   (void)argv;
   if (argc > 0) {
     chprintf(chp, "Usage: write\r\n");
@@ -699,6 +752,8 @@ int main(void) {
    *   RTOS is active.
    */
   halInit();
+  adcInit();
+
   chSysInit();
 
   /*
@@ -746,8 +801,8 @@ int main(void) {
   /*
    * Activates the DMA2D-related drivers.
    */
-  dma2dStart(&DMA2DD1, &dma2d_cfg);
-  dma2d_test();
+//  dma2dStart(&DMA2DD1, &dma2d_cfg);
+//  dma2d_test();
 
   /*
    * Creating the blinker threads.
