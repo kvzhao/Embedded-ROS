@@ -139,11 +139,12 @@ MCU  = cortex-m4
 #TRGT = arm-elf-
 TRGT = arm-none-eabi-
 CC   = $(TRGT)gcc
+GDB   = $(TRGT)gdb
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.
 # NOTE: You can use C++ even without C++ support if you are careful. C++
 #       runtime support makes code size explode.
-LD   = $(TRGT)gcc
+LD   = $(TRGT)gcc -g
 #LD   = $(TRGT)g++
 CP   = $(TRGT)objcopy
 AS   = $(TRGT)gcc -x assembler-with-cpp
@@ -232,3 +233,8 @@ include $(CHIBIOS)/os/ports/GCC/ARMCMx/rules.mk
 ## flash
 flash:
 	st-flash write build/ch.bin 0x08000000
+## screen
+monitor:
+	sudo screen /dev/ttyUSB0 115200
+gdbauto:
+	$(GDB) -x openocd_gdb.gdb
