@@ -799,9 +799,8 @@ int main(void) {
     adcInit();
     adcStart(&ADCD3, NULL);
     palSetPadMode(GPIOC, 3, PAL_MODE_INPUT_ANALOG);
-//    adcSTM32EnableTSVREFE();
 
-//    adcConvert(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
+    adcConvert(&ADCD3, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
     adcStartConversion(&ADCD3, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
 
   /*
