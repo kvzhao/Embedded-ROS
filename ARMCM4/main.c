@@ -110,7 +110,15 @@ static const ADCConversionGroup adcgrpcfg = {
     FALSE,
     ADC_GRP1_NUM_CHANNELS,
     adccb, // ADC Callback
-    NULL   // Error Callback
+    NULL,   // Error Callback
+    0,     /* CR1 */
+    ADC_CR2_SWSTART, /* CR2 */
+    ADC_SMPR1_SMP_AN11(ADC_SAMPLE_28), /* SMPR1 */
+    0,
+    ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
+    0,
+    ADC_SQR3_SQ1_N(ADC_CHANNEL_IN11)
+
 };
 
 
@@ -404,6 +412,21 @@ SerialUSBDriver SDU1;
 
 #define SHELL_WA_SIZE   THD_WA_SIZE(2048)
 #define TEST_WA_SIZE    THD_WA_SIZE(256)
+
+static void cmd_adc(BaseSequentialStream *chp, int argc, char *argv[]) {
+    (void)argv;
+    if (argc > 0) {
+    chprintf(chp, "Usage: adc\r\n");
+    return;
+    }
+    adcConvert(&ADCD3, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
+    uint32_t avg =(samples[0] + samples[1] + samples[2] + samples[3])/4;
+    chprintf(chp, "ADC Current Value is: %u \r\n", avg);
+    int i;
+    for (i=0; i < ADC_GRP1_BUF_DEPTH; i++) {
+        samples[i] = 0;
+    }
+}
 
 static void cmd_mem(BaseSequentialStream *chp, int argc, char *argv[]) {
   size_t n, size;
@@ -713,6 +736,7 @@ static const ShellCommand commands[] = {
   {"erase", cmd_erase},
   {"selfrefresh", cmd_selfrefresh},
   {"normal", cmd_normal},
+  {"adc", cmd_adc},
   {NULL, NULL}
 };
 
@@ -797,11 +821,17 @@ int main(void) {
  * ADC Initialization
  */
     adcInit();
-    adcStart(&ADCD3, NULL);
-    palSetPadMode(GPIOC, 3, PAL_MODE_INPUT_ANALOG);
 
-    adcConvert(&ADCD3, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
+    palSetPadMode(GPIOC, PAL_PORT_BIT(3), PAL_MODE_INPUT_ANALOG);
+    adcStart(&ADCD3, NULL);
+
+//    adcConvert(&ADCD3, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
     adcStartConversion(&ADCD3, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
+
+    /*
+     * Set for Wifi or BT data transfer
+     */
+   // uartInit();
 
   /*
    * Creating the blinker threads.
